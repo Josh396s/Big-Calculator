@@ -33,33 +33,29 @@ BigInteger::BigInteger(std::string s){
         throw std::invalid_argument("BigInteger: Constructor: empty string");
     }
     std::string b;
-    for(unsigned long i = 0; i < s.length(); i++) {//Iterate through the string
+    for(int i = (s.length()-1); i >= 0; i--) {//Iterate through the string
         if(s.at(i) == '-' ){//Negative List
             signum = -1;
-            i++;
+            continue;
         }
         else if(s.at(i) == '+' ){//Positive List
             signum = 1;
-            i++;
+            continue;
         }
         char a = s.at(i);
         long num = a - '0';//Convert character to long
         if(num < 0 || num > 9){//If character is not a valid number
             throw std::invalid_argument("\"BigInteger: Constructor: non-numeric string");
         }
-        b+=a;
+        b.insert(0, 1, a);
         if(b.length() == power){//Divide into proper number of digits
-/*            long val = stol(b);
-            int val_length = (num == 0) ? 1 : log10(num) + 1;
-            if(val_length < b.length()){
-
-            }
-*/
-            digits.insertBefore(stol(b));
-            b = "";
+            digits.insertAfter(stol(b));
+            b.clear();//Empty the string
         }
     }
-    digits.insertBefore(stol(b));
+    if(b.length() != 0){//Add any leftover digits
+        digits.insertAfter(stol(b));
+    }
     digits.moveFront();
 }
 
@@ -80,17 +76,28 @@ BigInteger::BigInteger(const BigInteger& N){
 // returned string will consist of the character '0' only.
 std::string BigInteger::to_string(){
     std::string s = "";
+    digits.moveFront();
     if(signum == 0){//If BigInteger is 0
         s += "0";
+        return s;
     }
     if(signum == -1){//If BigInteger is Negative
         s += "-";
     }
-    digits.moveFront();
     for(int i = 0; i < digits.length(); i++){
-        s += std::to_string(digits.moveNext()) + "";
+        int val =  digits.moveNext();
+        if(i == 0){
+            s += std::to_string(val) + "";
+        } else {
+            if (std::to_string(val).length() < power) {
+                int zer = power - std::to_string(val).length();
+                s += std::string(zer, '0') + "" + std::to_string(val) + "";
+            }
+            else{
+                s += std::to_string(val) + "";
+            }
+        }
     }
-    std::cout << "Length: " << digits.length() << std::endl;
     return s;
 }
 
