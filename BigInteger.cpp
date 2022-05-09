@@ -9,6 +9,7 @@
 #include<stdexcept>
 #include <iostream>
 #include <math.h>
+#include <cstring>
 #include"BigInteger.h"
 
 const int power = 2;
@@ -31,8 +32,8 @@ BigInteger::BigInteger(std::string s){
     if(s.length() == 0){//If s is empty
         throw std::invalid_argument("BigInteger: Constructor: empty string");
     }
-    int counter = 0;
-    for(unsigned long i = 0; i < s.length(); i++) {
+    std::string b;
+    for(unsigned long i = 0; i < s.length(); i++) {//Iterate through the string
         if(s.at(i) == '-' ){//Negative List
             signum = -1;
             i++;
@@ -46,16 +47,19 @@ BigInteger::BigInteger(std::string s){
         if(num < 0 || num > 9){//If character is not a valid number
             throw std::invalid_argument("\"BigInteger: Constructor: non-numeric string");
         }
-        else{
-            if(counter < base) {
-                digits.insertBefore(num);
-                if (counter % base == 0) {//Reset counter if digits fill base
-                    counter = 0;
-                }
+        b+=a;
+        if(b.length() == power){//Divide into proper number of digits
+/*            long val = stol(b);
+            int val_length = (num == 0) ? 1 : log10(num) + 1;
+            if(val_length < b.length()){
+
             }
+*/
+            digits.insertBefore(stol(b));
+            b = "";
         }
-        counter++;
     }
+    digits.insertBefore(stol(b));
     digits.moveFront();
 }
 
@@ -84,9 +88,9 @@ std::string BigInteger::to_string(){
     }
     digits.moveFront();
     for(int i = 0; i < digits.length(); i++){
-        s += std::to_string(digits.moveNext());
+        s += std::to_string(digits.moveNext()) + "";
     }
-
+    std::cout << "Length: " << digits.length() << std::endl;
     return s;
 }
 
