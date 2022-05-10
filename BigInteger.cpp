@@ -33,13 +33,13 @@ BigInteger::BigInteger(std::string s){
         throw std::invalid_argument("BigInteger: Constructor: empty string");
     }
     std::string b;
+    if(s.at(0) == '-' ){//Negative List
+        signum = -1;
+    } else {//Positive List
+        signum = 1;
+    }
     for(int i = (s.length()-1); i >= 0; i--) {//Iterate through the string
-        if(s.at(i) == '-' ){//Negative List
-            signum = -1;
-            continue;
-        }
-        else if(s.at(i) == '+' ){//Positive List
-            signum = 1;
+        if(s.at(i) == '-' || s.at(i) == '+'){
             continue;
         }
         char a = s.at(i);
@@ -65,6 +65,60 @@ BigInteger::BigInteger(const BigInteger& N){
     this->signum = N.signum;
     this->digits = N.digits;
 }
+
+// Access functions --------------------------------------------------------
+
+// sign()
+// Returns -1, 1 or 0 according to whether this BigInteger is positive,
+// negative or 0, respectively.
+int BigInteger::sign() const{
+    return signum;
+}
+
+// compare()
+// Returns -1, 1 or 0 according to whether this BigInteger is less than N,
+// greater than N or equal to N, respectively.
+int BigInteger::compare(const BigInteger& N) const{
+    if(this->signum == -1 && N.signum != -1){//BigInt is less than N if it is negative, but N isn't
+        return -1;
+    }
+    if(this->signum == 0 && N.signum == 1){//BigInt is less than N if it is 0 and N is positive
+        return -1;
+    }
+    if(this->signum == 0 && N.signum == -1){//BigInt is greater than N if it is positive, but N isn't
+        return 1;
+    }
+    if(this->signum == 1 && N.signum != 1){//BigInt is greater than N if it is positive, but N isn't
+        return 1;
+    }
+    if(digits.length() > N.digits.length()){
+        return 1;
+    }
+    if(digits.length() < N.digits.length()){
+        return -1;
+    }
+    BigInteger A = *this;
+    BigInteger B = N;
+
+    A.digits.moveFront();
+    B.digits.moveFront();
+    for(int i = 0; i < A.digits.length(); i++){
+        int a_val = A.digits.moveNext();
+        int b_val = B.digits.moveNext();
+        if(a_val < b_val){//If BigInteger is less than N
+            return -1;
+        }
+        if(a_val > b_val){//If BigInteger is greater than N
+            return 1;
+        }
+    }
+    return 0;//BigInteger is equal to N
+}
+
+
+
+
+
 
 
 // Other Functions ---------------------------------------------------------
