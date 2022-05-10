@@ -115,11 +115,29 @@ int BigInteger::compare(const BigInteger& N) const{
     return 0;//BigInteger is equal to N
 }
 
+// Manipulation procedures -------------------------------------------------
 
+// makeZero()
+// Re-sets this BigInteger to the zero state.
+void BigInteger::makeZero(){
+    digits.clear();
+    signum = 0;
+}
 
-
-
-
+// negate()
+// If this BigInteger is zero, does nothing, otherwise reverses the sign of
+// this BigInteger positive <--> negative.
+void BigInteger::negate(){
+    if(signum == 0){
+        return;
+    }
+    if(signum == -1){//If negative, make positive
+        signum = 1;
+    }
+    else if(signum == 1){//If positive, make negative
+        signum = -1;
+    }
+}
 
 // Other Functions ---------------------------------------------------------
 
