@@ -12,8 +12,11 @@
 #include <cstring>
 #include"BigInteger.h"
 
-const int power = 2;
-const long base = pow(10, 2);
+const int power = 3;
+const long base = pow(10, 3);
+
+int normalizeList(List& L);
+
 // Class Constructors & Destructors ----------------------------------------
 
 // BigInteger()
@@ -91,10 +94,10 @@ int BigInteger::compare(const BigInteger& N) const{
     if(this->signum == 1 && N.signum != 1){//BigInt is greater than N if it is positive, but N isn't
         return 1;
     }
-    if(digits.length() > N.digits.length()){
+    if(digits.length() > N.digits.length()){//BigInt is greater than N if it is a larger Number
         return 1;
     }
-    if(digits.length() < N.digits.length()){
+    if(digits.length() < N.digits.length()){//N is greater than BigInt if it is a larger Number
         return -1;
     }
     BigInteger A = *this;
@@ -139,6 +142,46 @@ void BigInteger::negate(){
     }
 }
 
+// BigInteger Arithmetic operations ----------------------------------------
+
+// add()
+// Returns a BigInteger representing the sum of this and N.
+BigInteger BigInteger::add(const BigInteger& N) const{
+    BigInteger Result;
+    BigInteger A = *this;
+    BigInteger B = N;
+    A.digits.moveBack();
+    B.digits.moveBack();
+    if(A.digits.length() <= B.digits.length()){//Iterate through smaller number
+        for(int i = 0; i < A.digits.length(); i++){
+            long a_val = A.digits.movePrev();
+            long b_val = B.digits.movePrev();
+            long tot = a_val + b_val;
+            Result.digits.insertAfter(tot);
+        }
+    } else {
+        for(int i = 0; i < B.digits.length(); i++){
+            long a_val = A.digits.movePrev();
+            long b_val = B.digits.movePrev();
+            long tot = a_val + b_val;
+            Result.digits.insertBefore(tot);
+        }
+    }
+    Result.signum = 1;
+    normalizeList(Result.digits);
+    return Result;
+}
+
+/*
+// sub()
+// Returns a BigInteger representing the difference of this and N.
+BigInteger sub(const BigInteger& N) const;
+
+// mult()
+// Returns a BigInteger representing the product of this and N.
+BigInteger mult(const BigInteger& N) const;
+*/
+
 // Other Functions ---------------------------------------------------------
 
 // to_string()
@@ -173,7 +216,64 @@ std::string BigInteger::to_string(){
     return s;
 }
 
-// Overriden Operators -----------------------------------------------------
+//Helper Functions -----------------------------------------------------
+/*
+// negateList()
+// Changes the sign of each integer in List L. Used by sub().
+void negateList(List& L);
+
+// sumList()
+// Overwrites the state of S with A + sgn*B (considered as vectors).
+// Used by both sum() and sub().
+void sumList(List& S, List A, List B, int sgn);
+
+*/
+// normalizeList()
+// Performs carries from right to left (least to most significant
+// digits), then returns the sign of the resulting integer. Used
+// by add(), sub() and mult().
+int normalizeList(List& L){
+    L.moveBack();
+    std::string s = "";
+    for(int i = 0; i < L.length(); i++){
+        long val = L.movePrev();
+        s += std::to_string(val) + "";
+        if (std::to_string(val).length() > power) {//If the current index is bigger than the power
+            std::string over = "";
+            int ind = std::to_string(val).length() - power;
+            for(int i = 0; i < ind; i++){//Get and remove the overflow
+                char num = s.at(i);
+                over.insert(0, 1, num);
+                s.erase(s.begin()+ i);
+            }
+            //Add overflow to Previous Number
+            long previous = L.peekPrev();
+            long total = previous + stol(over);
+            L.eraseBefore();
+            L.insertBefore(total);
+            //Update current Number
+            L.eraseAfter();
+            L.insertAfter(stol(s));
+            //Clear Strings
+            s.clear();
+            over.clear();
+        }
+    }
+    return 1;
+}
+
+/*
+// shiftList()
+// Prepends p zero digits to L, multiplying L by base^p. Used by mult().
+void shiftList(List& L, int p);
+
+// scalarMultList()
+// Multiplies L (considered as a vector) by m. Used by mult().
+void scalarMultList(List& L, ListElement m)
+*/
+
+
+// Overridden Operators -----------------------------------------------------
 
 // operator<<()
 // Inserts string representation of N into stream.
