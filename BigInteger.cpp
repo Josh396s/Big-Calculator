@@ -12,10 +12,11 @@
 #include <cstring>
 #include"BigInteger.h"
 
-const int power = 3;
-const long base = pow(10, 3);
+const int power = 2;
+const long base = pow(10, 2);
 
 int normalizeList(List& L);
+void sumList(List& S, List A, List B, int sgn);
 
 // Class Constructors & Destructors ----------------------------------------
 
@@ -150,23 +151,7 @@ BigInteger BigInteger::add(const BigInteger& N) const{
     BigInteger Result;
     BigInteger A = *this;
     BigInteger B = N;
-    A.digits.moveBack();
-    B.digits.moveBack();
-    if(A.digits.length() <= B.digits.length()){//Iterate through smaller number
-        for(int i = 0; i < A.digits.length(); i++){
-            long a_val = A.digits.movePrev();
-            long b_val = B.digits.movePrev();
-            long tot = a_val + b_val;
-            Result.digits.insertAfter(tot);
-        }
-    } else {
-        for(int i = 0; i < B.digits.length(); i++){
-            long a_val = A.digits.movePrev();
-            long b_val = B.digits.movePrev();
-            long tot = a_val + b_val;
-            Result.digits.insertBefore(tot);
-        }
-    }
+    sumList(Result.digits, A.digits, B.digits, 1);
     Result.signum = 1;
     normalizeList(Result.digits);
     return Result;
@@ -217,17 +202,53 @@ std::string BigInteger::to_string(){
 }
 
 //Helper Functions -----------------------------------------------------
-/*
+
 // negateList()
 // Changes the sign of each integer in List L. Used by sub().
-void negateList(List& L);
+void negateList(List& L){
+    L.moveBack();
+    for(int i = 0; i < L.length(); i++){
+        long val = L.movePrev();
+        val *= -1;
+        L.eraseAfter();
+        L.insertAfter(val);
+    }
+}
 
 // sumList()
 // Overwrites the state of S with A + sgn*B (considered as vectors).
 // Used by both sum() and sub().
-void sumList(List& S, List A, List B, int sgn);
+void sumList(List& S, List A, List B, int sgn){
+    A.moveBack();
+    B.moveBack();
+    int count = 0;
+    if(A.length() <= B.length()){//Iterate through smaller number
+        for(int i = 0; i < A.length(); i++){
+            long a_val = A.movePrev();
+            long b_val = B.movePrev();
+            long tot = a_val + (sgn * b_val);
+            S.insertAfter(tot);
+            count++;
+        }
+        for(int j = 0; j < (B.length()-count); j++){//Finish adding the rest of the list
+            long val = B.movePrev();
+            S.insertAfter(val);
+        }
+    } else {
+        for(int i = 0; i < B.length(); i++){
+            long a_val = A.movePrev();
+            long b_val = B.movePrev();
+            long tot = a_val + (sgn * b_val);
+            S.insertAfter(tot);
+            count++;
+        }
+        for(int j = 0; j < (A.length()-count); j++){//Finish adding the rest of the list
+            long val = A.movePrev();
+            S.insertAfter(val);
+        }
+    }
+}
 
-*/
 // normalizeList()
 // Performs carries from right to left (least to most significant
 // digits), then returns the sign of the resulting integer. Used
@@ -244,7 +265,7 @@ int normalizeList(List& L){
             for(int i = 0; i < ind; i++){//Get and remove the overflow
                 char num = s.at(i);
                 over.insert(0, 1, num);
-                s.erase(s.begin()+ i);
+                s.erase(s.begin() + i);
             }
             //Add overflow to Previous Number
             long previous = L.peekPrev();
@@ -255,9 +276,9 @@ int normalizeList(List& L){
             L.eraseAfter();
             L.insertAfter(stol(s));
             //Clear Strings
-            s.clear();
             over.clear();
         }
+        s.clear();
     }
     return 1;
 }
