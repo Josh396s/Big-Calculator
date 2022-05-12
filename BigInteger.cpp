@@ -180,3 +180,53 @@ std::string BigInteger::to_string(){
 std::ostream& operator<<( std::ostream& stream, BigInteger N ){
     return stream << N.BigInteger::to_string();
 }
+
+// operator==()
+// Returns true if and only if A equals B.
+bool operator==( const BigInteger& A, const BigInteger& B ){
+    if(A.BigInteger::compare(B) == 0){
+        return true;
+    } else{
+        return false;
+    }
+}
+
+// operator<()
+// Returns true if and only if A is less than B.
+bool operator<( const BigInteger& A, const BigInteger& B ){
+    if(A.BigInteger::compare(B) == -1){
+        return true;
+    } else{
+        return false;
+    }
+}
+
+// operator<=()
+// Returns true if and only if A is less than or equal to B.
+bool operator<=( const BigInteger& A, const BigInteger& B ){
+    if(A.BigInteger::compare(B) == 0 || A.BigInteger::compare(B) == -1){
+        return true;
+    } else{
+        return false;
+    }
+}
+
+// operator>()
+// Returns true if and only if A is greater than B.
+bool operator>( const BigInteger& A, const BigInteger& B ){
+    if(A.BigInteger::compare(B) == 1){
+        return true;
+    } else{
+        return false;
+    }
+}
+
+// operator>=()
+// Returns true if and only if A is greater than or equal to B.
+bool operator>=( const BigInteger& A, const BigInteger& B ){
+    if(A.BigInteger::compare(B) == 0 || A.BigInteger::compare(B) == 1){
+        return true;
+    } else{
+        return false;
+    }
+}
