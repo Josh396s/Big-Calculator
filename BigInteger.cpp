@@ -15,8 +15,9 @@
 const int power = 2;
 const long base = pow(10, 2);
 
-int normalizeList(List& L);
+int normalizeList(List& L, int sign);
 void sumList(List& S, List A, List B, int sgn);
+void scalarMultList(List& L, ListElement m);
 
 // Class Constructors & Destructors ----------------------------------------
 
@@ -151,21 +152,134 @@ BigInteger BigInteger::add(const BigInteger& N) const{
     BigInteger Result;
     BigInteger A = *this;
     BigInteger B = N;
-    sumList(Result.digits, A.digits, B.digits, 1);
+    int addition = 1;
     Result.signum = 1;
-    normalizeList(Result.digits);
+    if(A.sign() != -1 && B.sign() == -1){//A+(-B)
+        addition = -1;
+        B.signum = 1;
+        if(A == B){//If you are subtracting the same number
+            Result.makeZero();
+            return Result;
+        }
+        else if (A < B){
+            Result.signum = -1;
+        }
+        B.signum = -1;
+    }
+    if(A.sign() == -1 && B.sign() != -1){//(-A)+B
+        addition = -1;
+        A.signum = 1;
+        if(A == B){//If you are subtracting the same number
+            Result.makeZero();
+            return Result;
+        }
+        else if (A > B){
+            Result.signum = -1;
+        }
+        A.signum = -1;
+    }
+    if(A.sign() == -1 && B.sign() == -1){//If you are adding 2 negatives
+        Result.signum = -1;
+    }
+    else if(A.sign() == -1 && A.digits.length() > B.digits.length()){//If A is negative and bigger than B
+        Result.signum = -1;
+        addition = -1;
+    }
+    else if(B.sign() == -1 && B.digits.length() > A.digits.length()){//If B is negative and bigger than A
+        Result.signum = -1;
+        addition = -1;
+    }
+    sumList(Result.digits, A.digits, B.digits, addition);
+    normalizeList(Result.digits, Result.sign());
     return Result;
 }
 
-/*
 // sub()
 // Returns a BigInteger representing the difference of this and N.
-BigInteger sub(const BigInteger& N) const;
+BigInteger BigInteger::sub(const BigInteger& N) const{
+    BigInteger Result;
+    BigInteger A = *this;
+    BigInteger B = N;
+    if(A == B){//If you are subtracting the same number
+        Result.makeZero();
+        return Result;
+    }
+    int subtraction = -1;
+    Result.signum = -1;
+    if(A.sign() != -1 && B.sign() == -1){//A-(-B)
+        Result.signum = 1;
+        subtraction = 1;
+    }
+    if(A.sign() == -1 && B.sign() != -1){//-A-B
+        Result.signum = -1;
+        subtraction = 1;
+    }
+    if(A.sign() == -1 && B.sign() == -1){//(-A)-(-B)
+        A.signum = 1;
+        B.signum = 1;
+        if(A < B){
+            Result.signum = 1;
+        }
+        A.signum = -1;
+        B.signum = -1;
+    }
+    if(A.sign() == 1 && B.sign() == 1){//Regular subtraction
+        if(A > B){
+            subtraction = -1;
+            Result.signum = 1;
+        }
+    }
+    sumList(Result.digits, A.digits, B.digits, subtraction);
+    if(Result.digits.length() == 1){//Checking to see if the result is 0
+        Result.digits.moveBack();
+        if(Result.digits.peekPrev() == 0){
+            Result.makeZero();
+            return Result;
+        }
+    }
+    normalizeList(Result.digits, Result.sign());
+    return Result;
+}
 
 // mult()
 // Returns a BigInteger representing the product of this and N.
-BigInteger mult(const BigInteger& N) const;
-*/
+BigInteger BigInteger::mult(const BigInteger& N) const{
+    BigInteger A = *this;
+    BigInteger Result = A;
+    BigInteger B = N;
+    if(A.digits.length() == 1){//Checking to see if A is 0
+        A.digits.moveBack();
+        if(A.digits.peekPrev() == 0){
+            Result.makeZero();
+            return Result;
+        }
+    }
+    if(B.digits.length() == 1){//Checking to see if B is 0
+        B.digits.moveBack();
+        if(B.digits.peekPrev() == 0){
+            Result.makeZero();
+            return Result;
+        }
+    }
+    if(A.signum == -1 && B.signum == -1){//(-)*(-) = +
+        Result.signum = 1;
+    }
+    else if(A.signum == -1 && B.signum == 1){//(-)*(+) = -
+        Result.signum = -1;
+    }
+    else if(A.signum == 1 && B.signum == -1){//(+)*(-) = -
+        Result.signum = -1;
+    }
+    if(A.digits.length() < B.digits.length()){
+        A.digits.moveBack();
+        for(int i = 0; i < A.digits.length(); i++){
+            long val = A.digits.movePrev();
+            scalarMultList(Result.digits, val);
+        }
+    }
+    normalizeList(Result.digits, Result.sign());
+    return Result;
+}
 
 // Other Functions ---------------------------------------------------------
 
@@ -253,13 +367,31 @@ void sumList(List& S, List A, List B, int sgn){
 // Performs carries from right to left (least to most significant
 // digits), then returns the sign of the resulting integer. Used
 // by add(), sub() and mult().
-int normalizeList(List& L){
+int normalizeList(List& L, int sign){
+    L.moveFront();
+    if(L.peekNext() < 0){//If the first digit is negative
+        negateList(L);
+        int sign1 = -1;
+        normalizeList(L, sign1);
+    }
     L.moveBack();
     std::string s = "";
     for(int i = 0; i < L.length(); i++){
         long val = L.movePrev();
         s += std::to_string(val) + "";
-        if (std::to_string(val).length() > power) {//If the current index is bigger than the power
+        if(val < 0){//If the number is negative
+            //Update the current Number
+            long res = val + base;
+            L.eraseAfter();
+            L.insertAfter(res);
+            //Borrow from previous number
+            long update = L.peekPrev();
+            update-=1;
+            L.eraseBefore();
+            L.insertBefore(update);
+            continue;
+        }
+        if(std::to_string(val).length() > power) {//If the current index is bigger than the power
             std::string over = "";
             int ind = std::to_string(val).length() - power;
             for(int i = 0; i < ind; i++){//Get and remove the overflow
@@ -280,18 +412,26 @@ int normalizeList(List& L){
         }
         s.clear();
     }
-    return 1;
+    return sign;
 }
 
 /*
 // shiftList()
 // Prepends p zero digits to L, multiplying L by base^p. Used by mult().
 void shiftList(List& L, int p);
+*/
 
 // scalarMultList()
 // Multiplies L (considered as a vector) by m. Used by mult().
-void scalarMultList(List& L, ListElement m)
-*/
+void scalarMultList(List& L, ListElement m){
+    L.moveBack();
+    for(int i = 0; i < L.length(); i++){
+        long val = L.movePrev();
+        long result = val * m;
+        L.eraseAfter();
+        L.insertAfter(result);
+    }
+}
 
 
 // Overridden Operators -----------------------------------------------------
