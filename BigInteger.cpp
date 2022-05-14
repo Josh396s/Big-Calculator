@@ -9,15 +9,15 @@
 #include<stdexcept>
 #include <iostream>
 #include <math.h>
-#include <cstring>
 #include"BigInteger.h"
 
-const int power = 2;
-const long base = pow(10, 2);
+const int power = 9;
+const long base = pow(10, 9);
 
 int normalizeList(List& L, int sign);
 void sumList(List& S, List A, List B, int sgn);
 void scalarMultList(List& L, ListElement m);
+void shiftList(List& L, int p);
 
 // Class Constructors & Destructors ----------------------------------------
 
@@ -244,8 +244,8 @@ BigInteger BigInteger::sub(const BigInteger& N) const{
 // mult()
 // Returns a BigInteger representing the product of this and N.
 BigInteger BigInteger::mult(const BigInteger& N) const{
+    BigInteger Result;
     BigInteger A = *this;
-    BigInteger Result = A;
     BigInteger B = N;
     if(A.digits.length() == 1){//Checking to see if A is 0
         A.digits.moveBack();
@@ -261,6 +261,17 @@ BigInteger BigInteger::mult(const BigInteger& N) const{
             return Result;
         }
     }
+    B.digits.moveBack();
+    int shifter = 0;
+    for(int i = 0; i < B.digits.length(); i++){
+        BigInteger Mul = A;
+        long val = B.digits.movePrev();
+        scalarMultList(Mul.digits, val);
+        shiftList(Mul.digits, shifter);
+        Result += Mul;
+        normalizeList(Result.digits, Result.sign());
+        shifter++;
+    }
     if(A.signum == -1 && B.signum == -1){//(-)*(-) = +
         Result.signum = 1;
     }
@@ -270,14 +281,6 @@ BigInteger BigInteger::mult(const BigInteger& N) const{
     else if(A.signum == 1 && B.signum == -1){//(+)*(-) = -
         Result.signum = -1;
     }
-    if(A.digits.length() < B.digits.length()){
-        A.digits.moveBack();
-        for(int i = 0; i < A.digits.length(); i++){
-            long val = A.digits.movePrev();
-            scalarMultList(Result.digits, val);
-        }
-    }
-    normalizeList(Result.digits, Result.sign());
     return Result;
 }
 
@@ -336,6 +339,18 @@ void sumList(List& S, List A, List B, int sgn){
     A.moveBack();
     B.moveBack();
     int count = 0;
+    if(A.length() == 1){//If A is zero
+        if(A.peekPrev() == 0){
+            S = B;
+        }
+        return;
+    }
+    if(B.length() == 1){//If B is zero
+        if(B.peekPrev() == 0){
+            S = A;
+        }
+        return;
+    }
     if(A.length() <= B.length()){//Iterate through smaller number
         for(int i = 0; i < A.length(); i++){
             long a_val = A.movePrev();
@@ -399,27 +414,45 @@ int normalizeList(List& L, int sign){
                 over.insert(0, 1, num);
                 s.erase(s.begin() + i);
             }
-            //Add overflow to Previous Number
-            long previous = L.peekPrev();
-            long total = previous + stol(over);
-            L.eraseBefore();
-            L.insertBefore(total);
-            //Update current Number
-            L.eraseAfter();
-            L.insertAfter(stol(s));
-            //Clear Strings
-            over.clear();
+            if((i+1) == L.length()){
+                //Add overflow to Previous Number
+                long total = stol(over);
+                L.insertBefore(total);
+                //Update current Number
+                L.eraseAfter();
+                L.insertAfter(stol(s));
+                //Clear Strings
+                over.clear();
+            } else {
+                //Add overflow to Previous Number
+                long previous = L.peekPrev();
+                long total = previous + stol(over);
+                L.eraseBefore();
+                L.insertBefore(total);
+                //Update current Number
+                L.eraseAfter();
+                L.insertAfter(stol(s));
+                //Clear Strings
+                over.clear();
+            }
         }
         s.clear();
     }
     return sign;
 }
 
-/*
 // shiftList()
 // Prepends p zero digits to L, multiplying L by base^p. Used by mult().
-void shiftList(List& L, int p);
-*/
+void shiftList(List& L, int p){
+    if(p == 0){//No shift
+        return;
+    }
+    L.moveBack();
+    for(int i = 0; i < p; i++){
+        long val = 0 * pow(base, p);
+        L.insertAfter(val);
+    }
+}
 
 // scalarMultList()
 // Multiplies L (considered as a vector) by m. Used by mult().
@@ -490,4 +523,64 @@ bool operator>=( const BigInteger& A, const BigInteger& B ){
     } else{
         return false;
     }
+}
+
+// operator+()
+// Returns the sum A+B.
+BigInteger operator+( const BigInteger& A, const BigInteger& B ){
+    BigInteger temp = A;
+    BigInteger temp2 = B;
+    temp.add(B);
+    return temp;
+}
+
+// operator+=()
+// Overwrites A with the sum A+B.
+BigInteger operator+=( BigInteger& A, const BigInteger& B ){
+    BigInteger temp = A;
+    BigInteger temp2 = B;
+    BigInteger temp3 = temp.add(temp2);
+    std::swap(A.digits, temp3.digits);
+    std::swap(A.signum, temp3.signum);
+    return A;
+}
+
+// operator-()
+// Returns the difference A-B.
+BigInteger operator-( const BigInteger& A, const BigInteger& B ){
+    BigInteger temp = A;
+    BigInteger temp2 = B;
+    temp.sub(B);
+    return temp;
+}
+
+// operator-=()
+// Overwrites A with the difference A-B.
+BigInteger operator-=( BigInteger& A, const BigInteger& B ){
+    BigInteger temp = A;
+    BigInteger temp2 = B;
+    BigInteger temp3 = temp.sub(temp2);
+    std::swap(A.digits, temp.digits);
+    std::swap(A.signum, temp.signum);
+    return A;
+}
+
+// operator*()
+// Returns the product A*B.
+BigInteger operator*( const BigInteger& A, const BigInteger& B ){
+    BigInteger temp = A;
+    BigInteger temp2 = B;
+    temp.mult(B);
+    return temp;
+}
+
+// operator*=()
+// Overwrites A with the product A*B.
+BigInteger operator*=( BigInteger& A, const BigInteger& B ){
+    BigInteger temp = A;
+    BigInteger temp2 = B;
+    BigInteger temp3 = temp.mult(temp2);
+    std::swap(A.digits, temp.digits);
+    std::swap(A.signum, temp.signum);
+    return A;
 }
