@@ -191,6 +191,7 @@ BigInteger BigInteger::add(const BigInteger& N) const{
     }
     sumList(Result.digits, A.digits, B.digits, addition);
     normalizeList(Result.digits, Result.sign());
+    Result.digits.moveBack();
     return Result;
 }
 
@@ -281,6 +282,7 @@ BigInteger BigInteger::mult(const BigInteger& N) const{
     else if(A.signum == 1 && B.signum == -1){//(+)*(-) = -
         Result.signum = -1;
     }
+    Result.digits.moveBack();
     return Result;
 }
 
@@ -384,6 +386,9 @@ void sumList(List& S, List A, List B, int sgn){
 // by add(), sub() and mult().
 int normalizeList(List& L, int sign){
     L.moveFront();
+    while(L.peekNext() == 0){
+        L.eraseAfter();
+    }
     if(L.peekNext() < 0){//If the first digit is negative
         negateList(L);
         int sign1 = -1;
@@ -406,7 +411,7 @@ int normalizeList(List& L, int sign){
             L.insertBefore(update);
             continue;
         }
-        if(std::to_string(val).length() > power) {//If the current index is bigger than the power
+        if(std::to_string(val).length() > base) {//If the current index is bigger than the power
             std::string over = "";
             int ind = std::to_string(val).length() - power;
             for(int i = 0; i < ind; i++){//Get and remove the overflow
@@ -530,8 +535,8 @@ bool operator>=( const BigInteger& A, const BigInteger& B ){
 BigInteger operator+( const BigInteger& A, const BigInteger& B ){
     BigInteger temp = A;
     BigInteger temp2 = B;
-    temp.add(B);
-    return temp;
+    BigInteger temp3 = temp.add(temp2);
+    return temp3;
 }
 
 // operator+=()
@@ -550,8 +555,8 @@ BigInteger operator+=( BigInteger& A, const BigInteger& B ){
 BigInteger operator-( const BigInteger& A, const BigInteger& B ){
     BigInteger temp = A;
     BigInteger temp2 = B;
-    temp.sub(B);
-    return temp;
+    BigInteger temp3 = temp.sub(temp2);
+    return temp3;
 }
 
 // operator-=()
@@ -560,8 +565,8 @@ BigInteger operator-=( BigInteger& A, const BigInteger& B ){
     BigInteger temp = A;
     BigInteger temp2 = B;
     BigInteger temp3 = temp.sub(temp2);
-    std::swap(A.digits, temp.digits);
-    std::swap(A.signum, temp.signum);
+    std::swap(A.digits, temp3.digits);
+    std::swap(A.signum, temp3.signum);
     return A;
 }
 
@@ -570,16 +575,14 @@ BigInteger operator-=( BigInteger& A, const BigInteger& B ){
 BigInteger operator*( const BigInteger& A, const BigInteger& B ){
     BigInteger temp = A;
     BigInteger temp2 = B;
-    temp.mult(B);
-    return temp;
+    BigInteger temp3 = temp.mult(temp2);
+    return temp3;
 }
 
 // operator*=()
 // Overwrites A with the product A*B.
 BigInteger operator*=( BigInteger& A, const BigInteger& B ){
-    BigInteger temp = A;
-    BigInteger temp2 = B;
-    BigInteger temp3 = temp.mult(temp2);
+    BigInteger temp = A.mult(B);
     std::swap(A.digits, temp.digits);
     std::swap(A.signum, temp.signum);
     return A;
