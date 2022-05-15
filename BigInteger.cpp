@@ -175,24 +175,14 @@ BigInteger BigInteger::add(const BigInteger& N) const{
     }
     if(A.sign() == -1 && B.sign() != -1){//(-A)+B
         addition = -1;
-        A.signum = 1;
-        if(A == B){//If you are subtracting the same number
-            Result.makeZero();
-            return Result;
-        }
-        else if (A > B){
-            Result.signum = -1;
-        }
-        A.signum = -1;
+        sumList(Result.digits, B.digits, A.digits, addition);
+        normalizeList(Result.digits, Result.sign());
+        return Result;
     }
     if(A.sign() == -1 && B.sign() == -1){//If you are adding 2 negatives
         Result.signum = -1;
     }
     else if(A.sign() == -1 && A.digits.length() > B.digits.length()){//If A is negative and bigger than B
-        Result.signum = -1;
-        addition = -1;
-    }
-    else if(B.sign() == -1 && B.digits.length() > A.digits.length()){//If B is negative and bigger than A
         Result.signum = -1;
         addition = -1;
     }
@@ -308,21 +298,6 @@ std::string BigInteger::to_string(){
     if(signum == -1){//If BigInteger is Negative
         s += "-";
     }
-    /*
-    digits.moveBack();
-    for(int i = 0; i < digits.length(); i++){//Iterate through the BigInt
-        int val =  digits.movePrev();
-        //std::cout << "val: " << val << std::endl;
-        //std::cout << "Len: " << std::to_string(val).length() << std::endl;
-        std::string op = std::to_string(val);
-        for(int j = op.length()-1; j >= 0; j--){
-            char a = op.at(j);
-            s += a;
-        }
-    }
-*/
-
-
     for(int i = 0; i < digits.length(); i++){
         int val =  digits.moveNext();
         if(i == 0){
@@ -346,7 +321,6 @@ std::string BigInteger::to_string(){
             s.erase(s.begin());
         }
     }
-
     return s;
 }
 
@@ -383,7 +357,7 @@ void sumList(List& S, List A, List B, int sgn){
             return;
         }
     }
-    if(A.length() <= B.length()){//Iterate through smaller number
+    if(A.length() < B.length()){//Iterate through smaller number
         for(int i = 0; i < A.length(); i++){
             long a_val = A.movePrev();
             long b_val = B.movePrev();

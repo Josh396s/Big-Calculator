@@ -2,8 +2,8 @@
 #  Makefile for CSE 101 Programming Assignment 6
 #
 #  make                     makes Arithmetic
-#  make BigIntegerClient    makes BigIntegerClient
-#  make ListClient          makes ListClient
+#  make BigIntegerTest    makes BigIntegerTest
+#  make ListTest          makes ListTest
 #  make clean               removes all binaries
 #  make ArithmeticCheck     runs Arithmetic in valgrind on in4 junk4
 #  make BigIntegerCheck     runs BigIntegerTest in valgrind
@@ -15,11 +15,11 @@ ADT1           = BigInteger
 ADT2           = List
 SOURCE         = $(MAIN).cpp
 OBJECT         = $(MAIN).o
-ADT1_TEST      = $(ADT1)Client
+ADT1_TEST      = $(ADT1)Test
 ADT1_SOURCE    = $(ADT1).cpp
 ADT1_OBJECT    = $(ADT1).o
 ADT1_HEADER    = $(ADT1).h
-ADT2_TEST      = $(ADT2)Client
+ADT2_TEST      = $(ADT2)Test
 ADT2_SOURCE    = $(ADT2).cpp
 ADT2_OBJECT    = $(ADT2).o
 ADT2_HEADER    = $(ADT2).h
