@@ -308,12 +308,27 @@ std::string BigInteger::to_string(){
     if(signum == -1){//If BigInteger is Negative
         s += "-";
     }
+    /*
+    digits.moveBack();
+    for(int i = 0; i < digits.length(); i++){//Iterate through the BigInt
+        int val =  digits.movePrev();
+        //std::cout << "val: " << val << std::endl;
+        //std::cout << "Len: " << std::to_string(val).length() << std::endl;
+        std::string op = std::to_string(val);
+        for(int j = op.length()-1; j >= 0; j--){
+            char a = op.at(j);
+            s += a;
+        }
+    }
+*/
+
+
     for(int i = 0; i < digits.length(); i++){
         int val =  digits.moveNext();
         if(i == 0){
             s += std::to_string(val) + "";
         } else {
-            if (std::to_string(val).length() < power) {
+            if (std::to_string(val).length() < 10) {
                 int zer = power - std::to_string(val).length();
                 s += std::string(zer, '0') + "" + std::to_string(val) + "";
             }
@@ -322,6 +337,16 @@ std::string BigInteger::to_string(){
             }
         }
     }
+    if(signum == -1){
+        while(s.at(1) == '0'){
+            s.erase(s.begin()+1);
+        }
+    } else {
+        while(s.at(0) == '0'){
+            s.erase(s.begin());
+        }
+    }
+
     return s;
 }
 
