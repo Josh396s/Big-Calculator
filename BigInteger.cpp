@@ -191,7 +191,6 @@ BigInteger BigInteger::add(const BigInteger& N) const{
     }
     sumList(Result.digits, A.digits, B.digits, addition);
     normalizeList(Result.digits, Result.sign());
-    Result.digits.moveBack();
     return Result;
 }
 
@@ -270,7 +269,7 @@ BigInteger BigInteger::mult(const BigInteger& N) const{
         scalarMultList(Mul.digits, val);
         shiftList(Mul.digits, shifter);
         Result += Mul;
-        normalizeList(Result.digits, Result.sign());
+        //normalizeList(Result.digits, Result.sign());
         shifter++;
     }
     if(A.signum == -1 && B.signum == -1){//(-)*(-) = +
@@ -282,7 +281,6 @@ BigInteger BigInteger::mult(const BigInteger& N) const{
     else if(A.signum == 1 && B.signum == -1){//(+)*(-) = -
         Result.signum = -1;
     }
-    Result.digits.moveBack();
     return Result;
 }
 
@@ -344,14 +342,14 @@ void sumList(List& S, List A, List B, int sgn){
     if(A.length() == 1){//If A is zero
         if(A.peekPrev() == 0){
             S = B;
+            return;
         }
-        return;
     }
     if(B.length() == 1){//If B is zero
         if(B.peekPrev() == 0){
             S = A;
+            return;
         }
-        return;
     }
     if(A.length() <= B.length()){//Iterate through smaller number
         for(int i = 0; i < A.length(); i++){
@@ -411,7 +409,7 @@ int normalizeList(List& L, int sign){
             L.insertBefore(update);
             continue;
         }
-        if(std::to_string(val).length() > base) {//If the current index is bigger than the power
+        else if(std::to_string(val).length() > base) {//If the current index is bigger than the power
             std::string over = "";
             int ind = std::to_string(val).length() - power;
             for(int i = 0; i < ind; i++){//Get and remove the overflow
@@ -419,7 +417,7 @@ int normalizeList(List& L, int sign){
                 over.insert(0, 1, num);
                 s.erase(s.begin() + i);
             }
-            if((i+1) == L.length()){
+            if((i+1) == L.length()){//If you are at the front of the List
                 //Add overflow to Previous Number
                 long total = stol(over);
                 L.insertBefore(total);
@@ -452,10 +450,16 @@ void shiftList(List& L, int p){
     if(p == 0){//No shift
         return;
     }
+    /*
+    L.moveBack();
+    long val = L.peekPrev();
+    long update = val * pow(base, p);
+    L.eraseBefore();
+    L.insertBefore(update);
+    */
     L.moveBack();
     for(int i = 0; i < p; i++){
-        long val = 0 * pow(base, p);
-        L.insertAfter(val);
+        L.insertAfter(0);
     }
 }
 
@@ -582,8 +586,10 @@ BigInteger operator*( const BigInteger& A, const BigInteger& B ){
 // operator*=()
 // Overwrites A with the product A*B.
 BigInteger operator*=( BigInteger& A, const BigInteger& B ){
-    BigInteger temp = A.mult(B);
-    std::swap(A.digits, temp.digits);
-    std::swap(A.signum, temp.signum);
+    BigInteger temp = A;
+    BigInteger temp2 = B;
+    BigInteger temp3 = temp.mult(temp2);
+    std::swap(A.digits, temp3.digits);
+    std::swap(A.signum, temp3.signum);
     return A;
 }
