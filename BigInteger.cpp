@@ -9,6 +9,7 @@
 #include<stdexcept>
 #include <iostream>
 #include <math.h>
+#include <ctype.h>
 #include"BigInteger.h"
 
 const int power = 9;
@@ -43,14 +44,20 @@ BigInteger::BigInteger(std::string s){
     } else {//Positive List
         signum = 1;
     }
+    if(s.length() == 1 && !isdigit(s.at(0))){
+        throw std::invalid_argument("BigInteger: Constructor: non-numeric string");
+    }
     for(int i = (s.length()-1); i >= 0; i--) {//Iterate through the string
-        if(s.at(i) == '-' || s.at(i) == '+'){
+        char a = s.at(i);
+        if(i == 0 && (a == '+' || a == '-')){
             continue;
         }
-        char a = s.at(i);
         long num = a - '0';//Convert character to long
-        if(num < 0 || num > 9){//If character is not a valid number
-            throw std::invalid_argument("\"BigInteger: Constructor: non-numeric string");
+        if(!isdigit(s.at(i))){
+            throw std::invalid_argument("BigInteger: Constructor: non-numeric string");
+        }
+        if(a < 0 || num > 9){//If character is not a valid number
+            throw std::invalid_argument("BigInteger: Constructor: non-numeric string");
         }
         b.insert(0, 1, a);
         if(b.length() == power){//Divide into proper number of digits
