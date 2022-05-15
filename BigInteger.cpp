@@ -397,6 +397,7 @@ int normalizeList(List& L, int sign){
     for(int i = 0; i < L.length(); i++){
         long val = L.movePrev();
         s += std::to_string(val) + "";
+        int len = std::to_string(val).length();
         if(val < 0){//If the number is negative
             //Update the current Number
             long res = val + base;
@@ -409,13 +410,13 @@ int normalizeList(List& L, int sign){
             L.insertBefore(update);
             continue;
         }
-        else if(std::to_string(val).length() > base) {//If the current index is bigger than the power
+        if(len > power) {//If the current index is bigger than the power
             std::string over = "";
-            int ind = std::to_string(val).length() - power;
-            for(int i = 0; i < ind; i++){//Get and remove the overflow
-                char num = s.at(i);
-                over.insert(0, 1, num);
-                s.erase(s.begin() + i);
+            int ind = len - power;
+            for(int j = 0; j < ind; j++){//Get and remove the overflow
+                char num = s.at(0);
+                over.insert(j, 1, num);
+                s.erase(s.begin());
             }
             if((i+1) == L.length()){//If you are at the front of the List
                 //Add overflow to Previous Number
@@ -450,13 +451,6 @@ void shiftList(List& L, int p){
     if(p == 0){//No shift
         return;
     }
-    /*
-    L.moveBack();
-    long val = L.peekPrev();
-    long update = val * pow(base, p);
-    L.eraseBefore();
-    L.insertBefore(update);
-    */
     L.moveBack();
     for(int i = 0; i < p; i++){
         L.insertAfter(0);
@@ -474,7 +468,6 @@ void scalarMultList(List& L, ListElement m){
         L.insertAfter(result);
     }
 }
-
 
 // Overridden Operators -----------------------------------------------------
 
